@@ -72,7 +72,6 @@ def occluded_surface(pdb,method = "FIBOS"):
             os.remove(ray_remove)
         if os.path.exists(pack_remove):
             os.remove(pack_remove)
-        print("Calculating Surfaces Interactions...")
         main_intermediary.call_main(IRESF,iresl,MAX_RES,MAX_AT,meth)
         remove_files()
         file_name = change_files(pdb)
