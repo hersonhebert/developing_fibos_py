@@ -18,7 +18,7 @@ def osp(prot_file):
         if(prot_file!="prot.srf"):
             os.remove("prot.srf")
         prot_name = prot_file.removesuffix(".srf")
-        prot_name = prot_name[-4:]
+        prot_name = "prot_"+prot_name[-4:]
         prot_name = prot_name+".pak"
         os.rename("prot.pak",prot_name)
         #os.rename("prot.pak",prot_name)
