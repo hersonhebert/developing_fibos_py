@@ -22,8 +22,8 @@ def osp(prot_file):
         prot_name = prot_name+".pak"
         os.rename("prot.pak",prot_name)
         #os.rename("prot.pak",prot_name)
-        shutil.copy2(prot_name,"fibos_files")
-        os.remove(prot_name)
+        #shutil.copy2(prot_name,"fibos_files")
+        #os.remove(prot_name)
     return (pd.read_table(prot_name, header=0, sep=r'\s+'))
 
 def read_osp(prot_file):
