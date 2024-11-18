@@ -4,16 +4,16 @@ editor_options:
     wrap: sentence
 ---
 
-# FIBOS Python (BETA)
+# FIBOS R (BETA)
 
 The Occluded Surface (OS) algorithm is a widely used approach for analyzing atomic packing in biomolecules. 
-Here, we introduce **fibos**, an R and Python package that extends the OS methodology with enhancements. 
+Here, we introduce **FIBOS**, an R and Python package that extends the OS methodology with enhancements. 
 It integrates efficient Fortran code from the original OS implementation and introduces an innovation: 
 the use of Fibonacci spirals for surface point distribution. This modification reduces anisotropy and 
 ensures a more uniform and even distribution of surface dots, improving the accuracy
 of the algorithm.
 
-R fibos version: https://github.com/insilico-unifei/fibos-R.git.
+Python fibos version: https://github.com/insilico-unifei/fibos-py.git.
 
 ## Operating Systems
 
@@ -29,45 +29,46 @@ Tested on:
 - gfortran
 - gcc
 
-## Python versions
+## R versions
 
-Tested on: 3.9, 3.10
+Tested on: 4.4.1
 
 ## Instalations
 
-### Preliminary:
+### Preliminary
 
 Some preliminary actions according to OS:
 
 #### Linux (Ubuntu)
-
-Install gfortran, Python dev and venv:
-```
+Install gfortran:
+```bash
 $ sudo apt install gfortran
-$ sudo apt install python3.x-dev python3.x-venv
 ```
-where "x" is your Python version.
 
 #### Windows
-Install Desktop Development with C++ from Microsoft C++ Build Tools from:
+
+Install RTools from:
 ```
-https://visualstudio.microsoft.com/visual-cpp-build-tools/ 
+https://cran.r-project.org/bin/windows/Rtools
 ```
 
-Install gfortran (version 13.2+):
+Install gfortran from (version $\geq$ 13.2):
 ```
 http://www.equation.com/servlet/equation.cmd?fa=fortran
 ```
 
-Install git from:
+Set the PATH to the R bin folder as an administrator:
+
+```bash
+$ setx PATH "%PATH%;C:\Program Files\R\R-x.x.x\bin"
+
 ```
-https://git-scm.com/downloads
-```
+where x.x.x is the actual version number of your R installation.
 
 #### MacOS
 
 Install Homebrew:
-```
+```bash
 $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/
 HEAD/install.sh)”
 ```
@@ -77,56 +78,31 @@ the .zshrc file
 
 ```
 export PATH= "/path/to/homebrew/bin:$PATH"
+
 ```
 where "/path/to/homebrew/bin" is the actual homebrew path in your system. So, reload it:
 
-```
+```bash
 $ source ~/.zshrc
-```
-
-Install gfortran and gcc from:
-
-```
-$ brew install gfortran
-$ brew install gcc
 
 ```
 
-### Virtual environment (Venv) 
-
-It is highly recommended to work with virtual environments (Venv or Conda) in Python. 
-We show below how to create Venv:
-
-```
-# From shell terminal, in working directory:
-# Create a virtual environment ".venv"
-
-$ python3.x -m venv .venv
-(where "x" is your Python version.)
-
-# Activate the virtual environment:
-## Mac/Linux
-$ source .venv/bin/activate
-
-## Windows
-$ .venv\Scripts\activate
-
-# The prompt will change to something like:
-(.venv)$  
+Some Mac versions (with Apple Silicon) may require Rosetta:
+```bash
+$ softwareupdate --install-rosetta --agree-to-license
 ```
 
-### Basic Instalations
-
-Install packages in requirements.txt (in .venv):
-
-```
-(.venv)$ pip install -r requirements.txt
+Install xcode and gfortran from:
+```bash
+https://cran.r-project.org/bin/macosx/tools/
 ```
 
-Install fibos:
+### Install fibos:
 
-```         
-(.venv)$ pip install git+https://github.com/insilico-unifei/fibos-py
+```R
+install.packages("devtools")
+library("devtools")
+install_github("https://github.com/insilico-unifei/fibos-R.git") 
 ```
 
 ## Main functions:
@@ -143,108 +119,93 @@ parameter and returns the results as a table summarized by residue.
 
 ### Quickstart:
 
-```Python
-import fibos
-import os
+```R
+library(fibos)
 
 # Calculate FIBOS per atom and create .srf files in fibos_files folder
-pdb_fibos = fibos.occluded_surface("1fib", method="FIBOS")
+pdb_fibos <- occluded_surface("1fib", method = "FIBOS")
 
 # Show first 3 rows of pdb_fibos table
-print(pdb_fibos.head(3))
+pdb_fibos |> utils::head(3) |> print()
 
-#                     ATOM NUMBER_POINTS   AREA RAYLENGTH DISTANCE
-# 0  GLN 1@N___>HIS 3@NE2_             6  1.287     0.791     5.49
-# 1  GLN 1@N___>HIS 3@CE1_             1  0.200     0.894     6.06
-# 2  GLN 1@N___>HIS 3@CG__             1  0.160     0.991     6.27
+# A tibble: 3 × 6
+#   ATOM                       NUMBER_POINTS  AREA RAYLENGTH DISTANCE
+#   <chr>                              <int> <dbl>     <dbl>    <dbl>
+# 1 GLN    1@N___>HIS   3@NE2_             6  1.29     0.791     5.49
+# 2 GLN    1@N___>HIS   3@CE1_             1  0.2      0.894     6.06
+# 3 GLN    1@N___>HIS   3@CG__             1  0.16     0.991     6.27
 
 # Calculate OSP metric per residue from .srf file in fibos_files folder
-pdb_osp = fibos.osp(os.path.join("fibos_files","prot_1fib.srf"))
+pdb_osp <- osp(fs::path("fibos_files","prot_1fib.srf"))
 
 # Show first 3 rows of pdb_osp table
-print(pdb_osp.head(3))
+pdb_osp |> utils::head(3) |> print()
 
-#    Resnum Resname     OS  os*[1-raylen]    OSP
-# 0       1     GLN  36.81          21.94  0.157
-# 1       2     ILE  49.33          36.13  0.317
-# 2       3     HIS  64.14          43.17  0.335
-```
+# A tibble: 3 × 5
+#   Resnum Resname    OS `os*[1-raylen]`   OSP
+#    <dbl> <chr>   <dbl>           <dbl> <dbl>
+# 1      1 GLN      36.8            22.0 0.157
+# 2      2 ILE      49.4            36.2 0.317
+# 3      3 HIS      64.2            43.2 0.335
+``` 
 
 ### A more complex example:
 
-```Python
-import fibos
-import os
-from Bio.PDB import PDBList
-from concurrent.futures import ProcessPoolExecutor
-from functools import partial
+```R     
+library(fibos)
+library(furrr)
 
-# Auxiliary function to calculate occluded surface
-def occluded_surface_worker(pdb_path, method):
-    return fibos.occluded_surface(pdb_path, method=method)
+# source of PDB files
+pdb_folder <- "PDB"
 
-# Get PDB file from RCSB and put it into the PDB folder  
-# Rename the file appropriately and return path to it 
-# (i.e., PDB/prot_8rxn.ent -> PDB/8rxn.pdb)
-def get_pdb(id, path="."):
-    pdbl = PDBList()
-    new_path = os.path.join(path, f"{id.lower()}.pdb")
-    if not os.path.exists(new_path):
-        original_path = pdbl.retrieve_pdb_file(id.lower(), pdir=path, file_format='pdb')
-        os.rename(original_path, new_path)
-    return new_path
+# fibos folder output
+fibos_folder <- "fibos_files"
 
-if __name__ == "__main__":
+# Create PDB folder if it does not exist
+if (!fs::dir_exists(pdb_folder)) fs::dir_create(pdb_folder)
 
-    # source of PDB files
-    pdb_folder = "PDB"
+# PDB ids list
+pdb_ids = c("8RXN","1ROP") |> tolower()
 
-    # fibos folder output
-    fibos_folder = "fibos_files"
+# Get PDB files from RCSB and put them into the PDB folder 
+pdb_paths <- pdb_ids |> bio3d::get.pdb(path = pdb_folder)
+pdb_paths |> print()
 
-    # Create PDB folder if it does not exist
-    os.makedirs(pdb_folder, exist_ok=True)
-    
-    # PDB ids list
-    pdb_ids = ["8RXN", "1ROP"]
+# Save default environment variable "mc.cores" to recover later
+default_cores <- getOption("mc.cores")
 
-    # Get PDB files from RCSB and put them into the PDB folder  
-    pdb_paths = list(map(lambda pdb_id: get_pdb(pdb_id, path=pdb_folder), pdb_ids))
-    print(pdb_paths)
-    
-    # Detect number of physical cores and update cores according to pdb_ids size
-    ideal_cores = min(os.cpu_count(), len(pdb_ids))
+# Detect number of physical cores and update "mc.cores" according to pdb_ids size
+ideal_cores <- min(parallel::detectCores(), length(pdb_ids))
+if (ideal_cores > 0) options(mc.cores = ideal_cores)
 
-    # Calculate in parallel FIBOS per PDBid 
-    # Create .srf files in fibos_files folder
-    # Return FIBOS tables in pdb_fibos list
+# Calculate in parallel FIBOS per PDBid 
+# Create .srf files in fibos_files folder
+# Return FIBOS tables in pdb_fibos list
+if (ideal_cores > 1) future::plan(multisession, workers = ideal_cores)
+pdb_fibos <- pdb_paths |> furrr::future_map(\(x) occluded_surface(x, method = "FIBOS"), 
+                                            .options = furrr_options(seed = 123))
+# Recover default "mc.cores"
+if (ideal_cores > 0) options(mc.cores = default_cores)
 
-    worker_with_params = partial(occluded_surface_worker, method="FIBOS")
-    with ProcessPoolExecutor(max_workers=ideal_cores) as executor:
-        pdb_fibos = list(executor.map(worker_with_params, pdb_paths))
+# Show first 3 rows of first pdb_fibos table
+pdb_fibos[[1]] |> utils::head(3) |> print()
 
-    # Show first 3 rows of first pdb_fibos table
-    print(pdb_fibos[0].head(3))
-    
-    # Prepare paths for the generated .srf files in folder fibos_files
-    srf_paths = list(map(lambda pdb_id: os.path.join(fibos_folder, f"prot_{pdb_id.lower()}.srf"), pdb_ids))
-    print(srf_paths)
-    
-    # Calculate OSP metric by residue
-    # Return OSP tables in pdb_osp list
-    pdb_osp = list(map(lambda srf_path: fibos.osp(srf_path), srf_paths))
-    
-    # Show first 3 rows of the first pdb_osp table
-    print(pdb_osp[0].head(3))
-    
-# OBS: If you need to run this example in a Jupyter Notebook, move the 
-# occluded_surface_worker function to a "fun.py" file and import it as 
-# "from fun import occluded_surface_worker"
+# Prepare paths for the generated .srf files in folder fibos_files
+srf_paths <- pdb_ids |> purrr::map(\(x) fs::path(fibos_folder, paste0("prot_",x), ext = "srf")) |> 
+             unlist()
+srf_paths |> print()
+
+# Calculate OSP metric by residue
+# Return OSP tables in pdb_osp list
+pdb_osp <- srf_paths |> purrr::map(\(x) osp(x))
+
+# Show first 3 rows of the first pdb_osp table
+pdb_osp[[1]] |> utils::head(3) |> print()
 ```
 
-### Case Study:
+### Case study:
 [Here](https://github.com/insilico-unifei/fibos-R-case-study-supp.git) we show a 
-case study (currently only in R), aiming to compare the packing density between experimentally 
+case study  (currently only in R), aiming to compare the packing density between experimentally 
 determined structures and the same structures predicted by AlphaFold (AF).
 
 ## Authors
@@ -274,3 +235,5 @@ Pattabiraman N, Ward KB, Fleming PJ. Occluded molecular surface: Analysis of pro
 ## Status
 
 In Progress.
+
+
